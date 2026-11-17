@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LAS CANTERAS - Beach Song Saga</title>
+<style>
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #0b1021;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  #game-wrapper {
+    width: 100%;
+    max-width: 960px;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(180deg, #16224a 0%, #243b7a 60%, #e09f5a 60.5%, #c7823e 100%);
+    border: 4px solid #303a52;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px 24px;
+  }
+
+  .sun-orb {
+    position: absolute;
+    top: 30px;
+    right: 60px;
+    width: 54px;
+    height: 54px;
+    background: #fff3d1;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 243, 209, 0.6);
+    pointer-events: none;
+  }
+
+  header {
+    text-align: center;
+    z-index: 2;
+  }
+
+  h1 {
+    color: #f5b942;
+    font-size: clamp(22px, 3.5vw, 34px);
+    font-weight: 900;
+    margin: 4px 0 6px 0;
+    text-shadow: 3px 3px 0 #0a0e1a;
+    letter-spacing: 3px;
+  }
+
+  .subtitle {
+    color: #a8b8d8;
+    font-size: clamp(12px, 1.5vw, 15px);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    z-index: 2;
+    margin: 8px 0;
+  }
+
+  .card {
+    background: rgba(15, 22, 42, 0.88);
+    border: 2px solid #3a4a70;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card:hover {
+    border-color: #8fa3cf;
+  }
+
+  .card.selected {
+    border: 3px solid #f5b942;
+    box-shadow: 0 0 15px rgba(245, 185, 66, 0.4);
+    background: rgba(24, 34, 64, 0.95);
+    transform: translateY(-3px);
+  }
+
+  .sprite-box {
+    width: 86px;
+    height: 86px;
+    margin-bottom: 6px;
+    image-rendering: pixelated;
+  }
+
+  .char-name {
+    font-size: clamp(15px, 1.8vw, 19px);
+    font-weight: bold;
+    color: #ffffff;
+    margin: 4px 0 2px 0;
+    letter-spacing: 1px;
+  }
+
+  .char-title {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .stats {
+    font-size: 13px;
+    font-weight: bold;
+    color: #e2e8f0;
+    margin-bottom: 6px;
+  }
+
+  .stats span.heart { color: #ef4444; }
+
+  .skill-line {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin: 2px 0;
+  }
+
+  .skill-tag {
+    color: #60a5fa;
+    font-weight: bold;
+    margin-right: 4px;
+  }
+
+  .skill-desc {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+    line-height: 1.2;
+  }
+
+  .controls-area {
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mode-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 75%;
+  }
+
+  .mode-btn {
+    background: rgba(15, 22, 42, 0.9);
+    border: 2px solid #3a4a70;
+    color: #cbd5e1;
+    padding: 6px 10px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .mode-btn.selected {
+    border-color: #f5b942;
+    color: #fff;
+  }
+
+  .mode-title {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 3px;
+  }
+
+  .mode-sub {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .diff-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #cbd5e1;
+  }
+
+  .diff-btn {
+    background: rgba(15, 22, 42, 0.9);
+    border: 2px solid #3a4a70;
+    color: #94a3b8;
+    padding: 4px 14px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .diff-btn.selected {
+    border-color: #f5b942;
+    color: #fff;
+    background: #1e2d54;
+  }
+
+  .start-btn {
+    background: #f5b942;
+    color: #0f172a;
+    border: none;
+    padding: 10px 36px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #b47b16;
+    margin-top: 2px;
+  }
+
+  .start-btn:hover {
+    background: #ffca5c;
+  }
+
+  .start-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #b47b16;
+  }
+
+  #play-screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  canvas#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  .hud-hint {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-size: 13px;
+    color: #fff;
+    text-shadow: 1px 1px 0 #000;
+    background: rgba(0,0,0,0.55);
+    padding: 4px 8px;
+  }
+
+  .back-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: rgba(15, 22, 42, 0.85);
+    border: 2px solid #f5b942;
+    color: #f5b942;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+
+  .mobile-controls {
+    display: none;
+    position: absolute;
+    bottom: 38px;
+    left: 12px;
+    right: 12px;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .touch-group {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+  }
+
+  .touch-btn {
+    background: rgba(15, 22, 42, 0.8);
+    border: 2px solid #f5b942;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 14px 18px;
+    border-radius: 6px;
+  }
+
+  @media (pointer: coarse) {
+    .mobile-controls {
+      display: flex;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <div id="menu-screen" style="display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+    <div class="sun-orb"></div>
+
+    <header>
+      <h1>LAS CANTERAS</h1>
+      <div class="subtitle">A BEACH SONG SAGA &nbsp;&bull;&nbsp; VYBER SI ZPĚVAČKU A PROMENÁDU</div>
+    </header>
+
+    <div class="cards-container">
+      <div class="card selected" data-hero="liska" onclick="selectHero('liska')">
+        <canvas class="sprite-box" id="preview-liska" width="32" height="32"></canvas>
+        <div class="char-name">LIŠKA</div>
+        <div class="char-title">Hlas Oceánu</div>
+        <div class="stats"><span class="heart">&hearts;</span> 4/5 &nbsp; ZPĚV 6 &nbsp; RYTMUS 4</div>
+        <div class="skill-line"><span class="skill-tag">ZÁKLAD</span> Africký Chór</div>
+        <div class="skill-line"><span class="skill-tag">EXTRA</span> Zlatý Klobouk</div>
+        <div class="skill-desc">Silný hlas přitahuje turisty zdaleka.</div>
+      </div>
+
+      <div class="card" data-hero="lena" onclick="selectHero('lena')">
+        <canvas class="sprite-box" id="preview-lena" width="32" height="32"></canvas>
+        <div class="char-name">LÉŇA</div>
+        <div class="char-title">Královna Djembe</div>
+        <div class="stats"><span class="heart">&hearts;</span> 3/3 &nbsp; ZPĚV 4 &nbsp; RYTMUS 8</div>
+        <div class="skill-line"><span class="skill-tag">ZÁKLAD</span> Rytmus Djembe</div>
+        <div class="skill-line"><span class="skill-tag">EXTRA</span> Vlna Energie</div>
+        <div class="skill-desc">Rychlé tóny rozhýbou i ospalé surfaře.</div>
+      </div>
+
+      <div class="card" data-hero="bara" onclick="selectHero('bara')">
+        <canvas class="sprite-box" id="preview-bara" width="32" height="32"></canvas>
+        <div class="char-name">BÁRA</div>
+        <div class="char-title">Sluneční Harmonie</div>
+        <div class="stats"><span class="heart">&hearts;</span> 6/7 &nbsp; ZPĚV 7 &nbsp; RYTMUS 5</div>
+        <div class="skill-line"><span class="skill-tag">ZÁKLAD</span> Šejkr &amp; Tamburína</div>
+        <div class="skill-line"><span class="skill-tag">EXTRA</span> Kouzlo Západu</div>
+        <div class="skill-desc">Vydrží zpívat až do noci a sbírá dvojnásobné spropitné.</div>
+      </div>
+    </div>
+
+    <div class="controls-area">
+      <div class="mode-row">
+        <div class="mode-btn selected" data-mode="promenade" onclick="selectMode('promenade')">
+          <div class="mode-title">PROMENÁDA</div>
+          <div class="mode-sub">Projdi pláž od La Puntilla k Auditoriu</div>
+        </div>
+        <div class="mode-btn" data-mode="sunset" onclick="selectMode('sunset')">
+          <div class="mode-title">ZÁPAD SLUNCE</div>
+          <div class="mode-sub">Nekonečný koncert &bull; Noví posluchači</div>
+        </div>
+      </div>
+
+      <div class="diff-row">
+        <span>OBTÍŽNOST</span>
+        <button class="diff-btn" data-diff="low" onclick="selectDiff('low')">POHODA</button>
+        <button class="diff-btn selected" data-diff="middle" onclick="selectDiff('middle')">STŘEDNÍ</button>
+        <button class="diff-btn" data-diff="nightmare" onclick="selectDiff('nightmare')">PLÁŽOVÝ ŠRUM</button>
+      </div>
+
+      <button class="start-btn" onclick="startGame()">VYRAZIT NA PLÁŽ</button>
+    </div>
+  </div>
+
+  <div id="play-screen">
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <button class="back-btn" onclick="backToMenu()">&larr; ZPĚT DO MENU</button>
+    <div class="mobile-controls">
+      <div class="touch-group">
+        <button class="touch-btn" ontouchstart="keys['ArrowLeft']=true" ontouchend="keys['ArrowLeft']=false">&larr;</button>
+        <button class="touch-btn" ontouchstart="keys['ArrowRight']=true" ontouchend="keys['ArrowRight']=false">&rarr;</button>
+      </div>
+      <div class="touch-group">
+        <button class="touch-btn" ontouchstart="singNote()">ZPÍVAT &sung;</button>
+      </div>
+    </div>
+    <div class="hud-hint">Ovládání: ŠIPKY / A,D = pohyb &nbsp;|&nbsp; MEZERNÍK = zpívat noty (zasáhni kolemjdoucí pro &euro;!)</div>
+  </div>
+</div>
+
+<script>
+  let selectedHero = 'liska';
+  let selectedMode = 'promenade';
+  let selectedDiff = 'middle';
+
+  const HERO_DATA = {
+    liska: { name: 'LIŠKA', hair: '#d95326', dress: '#f5b942', skin: '#f5cba7', speed: 4.2, noteSpeed: 7, noteColor: '#ffd166', coinMult: 1 },
+    lena:  { name: 'LÉŇA',  hair: '#3b2314', dress: '#2ec4b6', skin: '#f5cba7', speed: 5.5, noteSpeed: 9.5, noteColor: '#4cc9f0', coinMult: 1 },
+    bara:  { name: 'BÁRA',  hair: '#e9c46a', dress: '#e76f51', skin: '#f5cba7', speed: 3.8, noteSpeed: 6.5, noteColor: '#ff758f', coinMult: 2 }
+  };
+
+  function drawPixelHero(ctx, heroKey, scale = 1, offsetX = 0, offsetY = 0, frame = 0) {
+    const h = HERO_DATA[heroKey];
+    const p = (x, y, w, hgt, col) => {
+      ctx.fillStyle = col;
+      ctx.fillRect(offsetX + x * scale, offsetY + y * scale, w * scale, hgt * scale);
+    };
+    const bob = frame % 2 === 1 ? 1 : 0;
+
+    p(10, 5 + bob, 12, 12, h.hair);
+    p(12, 6 + bob, 8, 8, h.skin);
+    p(13, 9 + bob, 2, 2, '#1a1a1a');
+    p(17, 9 + bob, 2, 2, '#1a1a1a');
+    p(11, 14 + bob, 10, 10, h.dress);
+    p(9, 15 + bob, 2, 6, h.skin);
+    p(21, 15 + bob, 2, 6, h.skin);
+    p(12, 24, 3, 6, h.skin);
+    p(17, 24, 3, 6, h.skin);
+    if (heroKey === 'liska') p(18, 5 + bob, 3, 3, '#ff4d6d');
+    if (heroKey === 'lena')  p(20, 18 + bob, 5, 5, '#8d5524');
+    if (heroKey === 'bara')  p(7, 17 + bob, 4, 4, '#ffd166');
+  }
+
+  ['liska', 'lena', 'bara'].forEach(key => {
+    const c = document.getElementById('preview-' + key);
+    const ctx = c.getContext('2d');
+    drawPixelHero(ctx, key, 1, 0, 0, 0);
+  });
+
+  function selectHero(hero) {
+    selectedHero = hero;
+    document.querySelectorAll('.card').forEach(el => {
+      el.classList.toggle('selected', el.dataset.hero === hero);
+    });
+  }
+
+  function selectMode(mode) {
+    selectedMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(el => {
+      el.classList.toggle('selected', el.dataset.mode === mode);
+    });
+  }
+
+  function selectDiff(diff) {
+    selectedDiff = diff;
+    document.querySelectorAll('.diff-btn').forEach(el => {
+      el.classList.toggle('selected', el.dataset.diff === diff);
+    });
+  }
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let animId;
+  let keys = {};
+
+  let player = { x: 100, y: 310, dir: 1, frame: 0, tick: 0 };
+  let notes = [];
+  let tourists = [];
+  let floatingTexts = [];
+  let euros = 0;
+  let energy = 100;
+  let spawnTimer = 0;
+  let cooldown = 0;
+
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'Space' && document.getElementById('play-screen').style.display === 'block') {
+      e.preventDefault();
+      singNote();
+    }
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function startGame() {
+    document.getElementById('menu-screen').style.display = 'none';
+    document.getElementById('play-screen').style.display = 'block';
+    player = { x: 120, y: 295, dir: 1, frame: 0, tick: 0 };
+    notes = [];
+    tourists = [];
+    floatingTexts = [];
+    euros = 0;
+    energy = 100;
+    spawnTimer = 0;
+    loop();
+  }
+
+  function backToMenu() {
+    cancelAnimationFrame(animId);
+    document.getElementById('play-screen').style.display = 'none';
+    document.getElementById('menu-screen').style.display = 'flex';
+  }
+
+  function singNote() {
+    if (cooldown > 0 || energy <= 0) return;
+    const h = HERO_DATA[selectedHero];
+    notes.push({
+      x: player.x + (player.dir === 1 ? 55 : -10),
+      y: player.y + 30,
+      vx: player.dir * h.noteSpeed,
+      symbol: ['♪', '♫', '♬'][Math.floor(Math.random() * 3)],
+      color: h.noteColor
+    });
+    cooldown = 14;
+  }
+
+  function spawnTourist() {
+    const fromRight = Math.random() > 0.3;
+    const diffSpeed = selectedDiff === 'low' ? 1.4 : selectedDiff === 'middle' ? 2.2 : 3.2;
+    const isGrumpy = Math.random() < (selectedDiff === 'nightmare' ? 0.35 : 0.15);
+    tourists.push({
+      x: fromRight ? 820 : -30,
+      y: 300 + (Math.random() * 25 - 10),
+      vx: (fromRight ? -1 : 1) * (diffSpeed + Math.random()),
+      happy: 0,
+      grumpy: isGrumpy,
+      shirt: isGrumpy ? '#475569' : ['#38bdf8', '#fb7185', '#a78bfa', '#34d399'][Math.floor(Math.random()*4)]
+    });
+  }
+
+  function update() {
+    const h = HERO_DATA[selectedHero];
+    if (cooldown > 0) cooldown--;
+
+    let moving = false;
+    if (keys['ArrowLeft'] || keys['KeyA']) { player.x -= h.speed; player.dir = -1; moving = true; }
+    if (keys['ArrowRight'] || keys['KeyD']) { player.x += h.speed; player.dir = 1; moving = true; }
+    player.x = Math.max(20, Math.min(720, player.x));
+
+    if (moving) {
+      player.tick++;
+      if (player.tick % 8 === 0) player.frame++;
+    } else {
+      player.frame = 0;
+    }
+
+    for (let i = notes.length - 1; i >= 0; i--) {
+      notes[i].x += notes[i].vx;
+      notes[i].y += Math.sin(notes[i].x * 0.08) * 1.2;
+      if (notes[i].x < -20 || notes[i].x > 820) notes.splice(i, 1);
+    }
+
+    spawnTimer--;
+    if (spawnTimer <= 0) {
+      spawnTourist();
+      spawnTimer = selectedDiff === 'low' ? 95 : selectedDiff === 'middle' ? 65 : 42;
+    }
+
+    for (let i = tourists.length - 1; i >= 0; i--) {
+      const t = tourists[i];
+      t.x += t.vx;
+
+      for (let j = notes.length - 1; j >= 0; j--) {
+        const n = notes[j];
+        if (Math.abs(n.x - (t.x + 15)) < 28 && Math.abs(n.y - (t.y + 30)) < 35) {
+          notes.splice(j, 1);
+          if (t.grumpy) {
+            t.grumpy = false;
+            t.shirt = '#fbbf24';
+            floatingTexts.push({ x: t.x, y: t.y - 10, text: 'Roztál!', color: '#fde047', life: 40 });
+          } else {
+            const tip = (Math.floor(Math.random() * 3) + 1) * h.coinMult;
+            euros += tip;
+            t.happy = 30;
+            floatingTexts.push({ x: t.x, y: t.y - 15, text: `+${tip} EUR`, color: '#4ade80', life: 45 });
+            t.vx *= 1.4;
+          }
+          break;
+        }
+      }
+
+      if (t.grumpy && Math.abs(t.x - player.x) < 26) {
+        energy = Math.max(0, energy - 15);
+        floatingTexts.push({ x: player.x, y: player.y - 10, text: 'Pšššt! (-15)', color: '#f87171', life: 45 });
+        tourists.splice(i, 1);
+        continue;
+      }
+
+      if (t.x < -60 || t.x > 860) tourists.splice(i, 1);
+    }
+
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+      floatingTexts[i].y -= 0.8;
+      floatingTexts[i].life--;
+      if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+    }
+  }
+
+  function drawScene() {
+    ctx.fillStyle = selectedMode === 'sunset' ? '#2b193d' : '#1d356b';
+    ctx.fillRect(0, 0, 800, 240);
+
+    ctx.fillStyle = selectedMode === 'sunset' ? '#ff7b00' : '#fff3d1';
+    ctx.beginPath();
+    ctx.arc(670, 95, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0077b6';
+    ctx.fillRect(0, 240, 800, 45);
+    ctx.fillStyle = '#90e0ef';
+    ctx.fillRect(0, 280, 800, 6);
+
+    ctx.fillStyle = '#e09f5a';
+    ctx.fillRect(0, 286, 800, 164);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 355, 800, 95);
+
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(player.x + 15, player.y + 62, 30, 10);
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(player.x + 22, player.y + 64, 16, 4);
+
+    drawPixelHero(ctx, selectedHero, 2.3, player.x, player.y, player.frame);
+
+    tourists.forEach(t => {
+      ctx.fillStyle = '#f5cba7';
+      ctx.fillRect(t.x + 8, t.y, 16, 16);
+      ctx.fillStyle = t.shirt;
+      ctx.fillRect(t.x + 4, t.y + 16, 24, 24);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(t.x + 6, t.y + 40, 8, 18);
+      ctx.fillRect(t.x + 18, t.y + 40, 8, 18);
+      if (t.grumpy) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 18px Courier New';
+        ctx.fillText('(!)', t.x + 6, t.y - 5);
+      }
+    });
+
+    notes.forEach(n => {
+      ctx.fillStyle = n.color;
+      ctx.font = 'bold 28px monospace';
+      ctx.fillText(n.symbol, n.x, n.y);
+    });
+
+    floatingTexts.forEach(ft => {
+      ctx.fillStyle = ft.color;
+      ctx.font = 'bold 18px Courier New';
+      ctx.fillText(ft.text, ft.x, ft.y);
+    });
+
+    ctx.fillStyle = 'rgba(15, 22, 42, 0.8)';
+    ctx.fillRect(10, 10, 480, 42);
+    ctx.strokeStyle = '#f5b942';
+    ctx.strokeRect(10, 10, 480, 42);
+
+    ctx.fillStyle = '#f5b942';
+    ctx.font = 'bold 15px Courier New';
+    ctx.fillText(`ZPĚVAČKA: ${HERO_DATA[selectedHero].name} | VYDĚLÁNO: ${euros} EUR | ENERGIE: ${energy}%`, 22, 36);
+
+    if (energy <= 0) {
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(0, 0, 800, 450);
+      ctx.fillStyle = '#f5b942';
+      ctx.font = 'bold 34px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText('KONEC SMĚNY!', 400, 200);
+      ctx.font = 'bold 18px Courier New';
+      ctx.fillStyle = '#fff';
+      ctx.fillText(`Na promenádě Las Canteras jste vydělali celkem ${euros} EUR!`, 400, 245);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  function loop() {
+    if (energy > 0) update();
+    drawScene();
+    animId = requestAnimationFrame(loop);
+  }
+</script>
+</body>
+</html>
