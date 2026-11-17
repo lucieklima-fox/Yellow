@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LAS CANTERAS - Beach Song Saga</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #0b1021;
+    color: #fff;
+    font-family: 'VT323', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  #rotate-notice {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #0b1021;
+    z-index: 9999;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 24px;
+  }
+
+  #rotate-notice .icon {
+    font-size: 56px;
+    color: #f5b942;
+    margin-bottom: 16px;
+    animation: spinPhone 2s infinite ease-in-out;
+  }
+
+  @keyframes spinPhone {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+  }
+
+  #rotate-notice h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    color: #f5b942;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+  }
+
+  #rotate-notice p {
+    font-size: 22px;
+    color: #cbd5e1;
+    margin: 0;
+  }
+
+  @media screen and (orientation: portrait) and (max-width: 900px) {
+    #rotate-notice {
+      display: flex;
+    }
+    #game-wrapper {
+      display: none !important;
+    }
+  }
+
+  #game-wrapper {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 960px;
+    max-height: 540px;
+    background: linear-gradient(180deg, #16224a 0%, #243b7a 60%, #e09f5a 60.5%, #c7823e 100%);
+    border: 3px solid #303a52;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px 16px;
+    overflow: hidden;
+  }
+
+  .sun-orb {
+    position: absolute;
+    top: 18px;
+    right: 40px;
+    width: 44px;
+    height: 44px;
+    background: #fff3d1;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 243, 209, 0.6);
+    pointer-events: none;
+  }
+
+  header {
+    text-align: center;
+    z-index: 2;
+  }
+
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    color: #f5b942;
+    font-size: clamp(14px, 2.6vw, 24px);
+    margin: 2px 0 4px 0;
+    text-shadow: 2px 2px 0 #0a0e1a;
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    color: #a8b8d8;
+    font-size: clamp(13px, 1.8vw, 17px);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    z-index: 5;
+    margin: 4px 0;
+  }
+
+  .card {
+    background: rgba(15, 22, 42, 0.9);
+    border: 2px solid #3a4a70;
+    padding: 6px 8px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    touch-action: manipulation;
+  }
+
+  .card.selected {
+    border: 3px solid #f5b942;
+    box-shadow: 0 0 12px rgba(245, 185, 66, 0.5);
+    background: rgba(24, 34, 64, 0.96);
+  }
+
+  .sprite-box {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 2px;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+
+  .char-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(10px, 1.4vw, 13px);
+    color: #ffffff;
+    margin: 2px 0;
+    pointer-events: none;
+  }
+
+  .char-title {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 3px;
+    pointer-events: none;
+  }
+
+  .stats {
+    font-size: 14px;
+    color: #e2e8f0;
+    margin-bottom: 3px;
+    pointer-events: none;
+  }
+
+  .stats span.heart { color: #ef4444; }
+
+  .skill-line {
+    font-size: 14px;
+    color: #cbd5e1;
+    margin: 1px 0;
+    pointer-events: none;
+  }
+
+  .skill-tag {
+    color: #60a5fa;
+    font-weight: bold;
+    margin-right: 3px;
+  }
+
+  .skill-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 2px;
+    line-height: 1.05;
+    pointer-events: none;
+  }
+
+  .controls-area {
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .mode-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 85%;
+  }
+
+  .mode-btn {
+    background: rgba(15, 22, 42, 0.92);
+    border: 2px solid #3a4a70;
+    color: #cbd5e1;
+    padding: 5px 8px;
+    text-align: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .mode-btn.selected {
+    border-color: #f5b942;
+    color: #fff;
+  }
+
+  .mode-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    margin-bottom: 2px;
+    pointer-events: none;
+  }
+
+  .mode-sub {
+    font-size: 13px;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+
+  .diff-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #cbd5e1;
+  }
+
+  .diff-btn {
+    background: rgba(15, 22, 42, 0.92);
+    border: 2px solid #3a4a70;
+    color: #94a3b8;
+    padding: 3px 12px;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .diff-btn.selected {
+    border-color: #f5b942;
+    color: #fff;
+    background: #1e2d54;
+  }
+
+  .start-btn {
+    background: #f5b942;
+    color: #0f172a;
+    border: none;
+    padding: 9px 28px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #b47b16;
+    touch-action: manipulation;
+  }
+
+  .start-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #b47b16;
+  }
+
+  #play-screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  canvas#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  .back-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: rgba(15, 22, 42, 0.9);
+    border: 2px solid #f5b942;
+    color: #f5b942;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    padding: 4px 12px;
+    cursor: pointer;
+    z-index: 20;
+    touch-action: manipulation;
+  }
+
+  .mobile-controls {
+    display: flex;
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    right: 14px;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  .touch-group {
+    display: flex;
+    gap: 12px;
+    pointer-events: auto;
+  }
+
+  .touch-btn {
+    background: rgba(15, 22, 42, 0.85);
+    border: 3px solid #f5b942;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    padding: 16px 22px;
+    border-radius: 10px;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .touch-btn:active {
+    background: #f5b942;
+    color: #0f172a;
+  }
+
+  @media (pointer: fine) {
+    .mobile-controls {
+      opacity: 0.75;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="rotate-notice">
+  <div class="icon">&#8635;</div>
+  <h2>OTOČTE TELEFON NA ŠÍŘKU</h2>
+  <p>Hra LAS CANTERAS se hraje na šířku.</p>
+</div>
+
+<div id="game-wrapper">
+  <div id="menu-screen" style="display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+    <div class="sun-orb"></div>
+
+    <header>
+      <h1>LAS CANTERAS</h1>
+      <div class="subtitle">A BEACH SONG SAGA &bull; VYBER SI ZPĚVAČKU</div>
+    </header>
+
+    <div class="cards-container">
+      <div class="card selected" id="card-liska">
+        <canvas class="sprite-box" id="preview-liska" width="32" height="32"></canvas>
+        <div class="char-name">LIŠKA</div>
+        <div class="char-title">Hlas Oceánu</div>
+        <div class="stats"><span class="heart">&hearts;</span> 4/5 ZPĚV 6 RYTMUS 4</div>
+        <div class="skill-line"><span class="skill-tag">ZÁKLAD</span> Africký Chór</div>
+        <div class="skill-desc">Silný hlas přitahuje turisty zdaleka.</div>
+      </div>
+
+      <div class="card" id="card-lena">
+        <canvas class="sprite-box" id="preview-lena" width="32" height="32"></canvas>
+        <div class="char-name">LÉŇA</div>
+        <div class="char-title">Královna Djembe</div>
+        <div class="stats"><span class="heart">&hearts;</span> 3/3 ZPĚV 4 RYTMUS 8</div>
+        <div class="skill-line"><span class="skill-tag">ZÁKLAD</span> Rytmus Djembe</div>
+        <div class="skill-desc">Rychlé tóny rozhýbou i ospalé surfaře.</div>
+      </div>
+
+      <div class="card" id="card-bara">
+        <canvas class="sprite-box" id="preview-bara" width="32" height="32"></canvas>
+        <div class="char-name">BÁRA</div>
+        <div class="char-title">Sluneční Harmonie</div>
+        <div class="stats"><span class="heart">&hearts;</span> 6/7 ZPĚV 7 RYTMUS 5</div>
+        <div class="skill-line"><span class="skill-tag">ZÁKLAD</span> Šejkr &amp; Tamburína</div>
+        <div class="skill-desc">Sbírá dvojnásobné spropitné.</div>
+      </div>
+    </div>
+
+    <div class="controls-area">
+      <div class="mode-row">
+        <div class="mode-btn selected" id="mode-promenade">
+          <div class="mode-title">PROMENÁDA</div>
+          <div class="mode-sub">Od La Puntilla k Auditoriu</div>
+        </div>
+        <div class="mode-btn" id="mode-sunset">
+          <div class="mode-title">ZÁPAD SLUNCE</div>
+          <div class="mode-sub">Večerní koncert na pláži</div>
+        </div>
+      </div>
+
+      <div class="diff-row">
+        <span>OBTÍŽNOST</span>
+        <button type="button" class="diff-btn" id="diff-low">POHODA</button>
+        <button type="button" class="diff-btn selected" id="diff-middle">STŘEDNÍ</button>
+        <button type="button" class="diff-btn" id="diff-nightmare">PLÁŽOVÝ ŠRUM</button>
+      </div>
+
+      <button type="button" class="start-btn" id="btn-start">VYRAZIT NA PLÁŽ</button>
+    </div>
+  </div>
+
+  <div id="play-screen">
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <button type="button" class="back-btn" id="btn-back">&larr; MENU</button>
+    <div class="mobile-controls">
+      <div class="touch-group">
+        <button type="button" class="touch-btn" id="btn-left">&larr;</button>
+        <button type="button" class="touch-btn" id="btn-right">&rarr;</button>
+      </div>
+      <div class="touch-group">
+        <button type="button" class="touch-btn" id="btn-sing">ZPÍVAT &sung;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let selectedHero = 'liska';
+  let selectedMode = 'promenade';
+  let selectedDiff = 'middle';
+
+  const HERO_DATA = {
+    liska: { name: 'LIŠKA', hair: '#d95326', dress: '#f5b942', skin: '#f5cba7', speed: 4.5, noteSpeed: 7.5, noteColor: '#ffd166', coinMult: 1 },
+    lena:  { name: 'LÉŇA',  hair: '#3b2314', dress: '#2ec4b6', skin: '#f5cba7', speed: 5.8, noteSpeed: 10, noteColor: '#4cc9f0', coinMult: 1 },
+    bara:  { name: 'BÁRA',  hair: '#e9c46a', dress: '#e76f51', skin: '#f5cba7', speed: 4.0, noteSpeed: 7.0, noteColor: '#ff758f', coinMult: 2 }
+  };
+
+  function drawPixelHero(ctx, heroKey, scale = 1, offsetX = 0, offsetY = 0, frame = 0) {
+    const h = HERO_DATA[heroKey];
+    const p = (x, y, w, hgt, col) => {
+      ctx.fillStyle = col;
+      ctx.fillRect(offsetX + x * scale, offsetY + y * scale, w * scale, hgt * scale);
+    };
+    const bob = frame % 2 === 1 ? 1 : 0;
+
+    p(10, 5 + bob, 12, 12, h.hair);
+    p(12, 6 + bob, 8, 8, h.skin);
+    p(13, 9 + bob, 2, 2, '#1a1a1a');
+    p(17, 9 + bob, 2, 2, '#1a1a1a');
+    p(11, 14 + bob, 10, 10, h.dress);
+    p(9, 15 + bob, 2, 6, h.skin);
+    p(21, 15 + bob, 2, 6, h.skin);
+    p(12, 24, 3, 6, h.skin);
+    p(17, 24, 3, 6, h.skin);
+    if (heroKey === 'liska') p(18, 5 + bob, 3, 3, '#ff4d6d');
+    if (heroKey === 'lena')  p(20, 18 + bob, 5, 5, '#8d5524');
+    if (heroKey === 'bara')  p(7, 17 + bob, 4, 4, '#ffd166');
+  }
+
+  ['liska', 'lena', 'bara'].forEach(key => {
+    const c = document.getElementById('preview-' + key);
+    if (c) drawPixelHero(c.getContext('2d'), key, 1, 0, 0, 0);
+  });
+
+  function bindTap(el, fn) {
+    if (!el) return;
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      fn();
+    });
+  }
+
+  ['liska', 'lena', 'bara'].forEach(hero => {
+    bindTap(document.getElementById('card-' + hero), () => {
+      selectedHero = hero;
+      ['liska', 'lena', 'bara'].forEach(k => {
+        document.getElementById('card-' + k).classList.toggle('selected', k === hero);
+      });
+    });
+  });
+
+  ['promenade', 'sunset'].forEach(mode => {
+    bindTap(document.getElementById('mode-' + mode), () => {
+      selectedMode = mode;
+      ['promenade', 'sunset'].forEach(m => {
+        document.getElementById('mode-' + m).classList.toggle('selected', m === mode);
+      });
+    });
+  });
+
+  ['low', 'middle', 'nightmare'].forEach(diff => {
+    bindTap(document.getElementById('diff-' + diff), () => {
+      selectedDiff = diff;
+      ['low', 'middle', 'nightmare'].forEach(d => {
+        document.getElementById('diff-' + d).classList.toggle('selected', d === diff);
+      });
+    });
+  });
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let animId = null;
+  let keys = {};
+
+  let player = { x: 120, y: 295, dir: 1, frame: 0, tick: 0 };
+  let notes = [];
+  let tourists = [];
+  let floatingTexts = [];
+  let euros = 0;
+  let energy = 100;
+  let spawnTimer = 0;
+  let cooldown = 0;
+
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'Space' && document.getElementById('play-screen').style.display === 'block') {
+      e.preventDefault();
+      singNote();
+    }
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function holdButton(btnId, keyName) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const down = (e) => { e.preventDefault(); keys[keyName] = true; };
+    const up = (e) => { e.preventDefault(); keys[keyName] = false; };
+    btn.addEventListener('touchstart', down, { passive: false });
+    btn.addEventListener('touchend', up, { passive: false });
+    btn.addEventListener('touchcancel', up, { passive: false });
+    btn.addEventListener('mousedown', down);
+    btn.addEventListener('mouseup', up);
+    btn.addEventListener('mouseleave', up);
+  }
+
+  holdButton('btn-left', 'ArrowLeft');
+  holdButton('btn-right', 'ArrowRight');
+
+  const btnSing = document.getElementById('btn-sing');
+  if (btnSing) {
+    btnSing.addEventListener('touchstart', (e) => { e.preventDefault(); singNote(); }, { passive: false });
+    btnSing.addEventListener('mousedown', (e) => { e.preventDefault(); singNote(); });
+  }
+
+  function startGame() {
+    document.getElementById('menu-screen').style.display = 'none';
+    document.getElementById('play-screen').style.display = 'block';
+    player = { x: 120, y: 295, dir: 1, frame: 0, tick: 0 };
+    notes = [];
+    tourists = [];
+    floatingTexts = [];
+    euros = 0;
+    energy = 100;
+    spawnTimer = 0;
+    keys = {};
+    if (animId) cancelAnimationFrame(animId);
+    loop();
+  }
+
+  function backToMenu() {
+    if (animId) cancelAnimationFrame(animId);
+    keys = {};
+    document.getElementById('play-screen').style.display = 'none';
+    document.getElementById('menu-screen').style.display = 'flex';
+  }
+
+  bindTap(document.getElementById('btn-start'), startGame);
+  bindTap(document.getElementById('btn-back'), backToMenu);
+
+  function singNote() {
+    if (cooldown > 0 || energy <= 0) return;
+    const h = HERO_DATA[selectedHero];
+    notes.push({
+      x: player.x + (player.dir === 1 ? 55 : -10),
+      y: player.y + 30,
+      vx: player.dir * h.noteSpeed,
+      symbol: ['\u266A', '\u266B', '\u266C'][Math.floor(Math.random() * 3)],
+      color: h.noteColor
+    });
+    cooldown = 12;
+  }
+
+  function spawnTourist() {
+    const fromRight = Math.random() > 0.3;
+    const diffSpeed = selectedDiff === 'low' ? 1.4 : selectedDiff === 'middle' ? 2.2 : 3.2;
+    const isGrumpy = Math.random() < (selectedDiff === 'nightmare' ? 0.35 : 0.15);
+    tourists.push({
+      x: fromRight ? 820 : -30,
+      y: 300 + (Math.random() * 25 - 10),
+      vx: (fromRight ? -1 : 1) * (diffSpeed + Math.random()),
+      happy: 0,
+      grumpy: isGrumpy,
+      shirt: isGrumpy ? '#475569' : ['#38bdf8', '#fb7185', '#a78bfa', '#34d399'][Math.floor(Math.random()*4)]
+    });
+  }
+
+  function update() {
+    const h = HERO_DATA[selectedHero];
+    if (cooldown > 0) cooldown--;
+
+    let moving = false;
+    if (keys['ArrowLeft'] || keys['KeyA']) { player.x -= h.speed; player.dir = -1; moving = true; }
+    if (keys['ArrowRight'] || keys['KeyD']) { player.x += h.speed; player.dir = 1; moving = true; }
+    player.x = Math.max(20, Math.min(720, player.x));
+
+    if (moving) {
+      player.tick++;
+      if (player.tick % 8 === 0) player.frame++;
+    } else {
+      player.frame = 0;
+    }
+
+    for (let i = notes.length - 1; i >= 0; i--) {
+      notes[i].x += notes[i].vx;
+      notes[i].y += Math.sin(notes[i].x * 0.08) * 1.2;
+      if (notes[i].x < -20 || notes[i].x > 820) notes.splice(i, 1);
+    }
+
+    spawnTimer--;
+    if (spawnTimer <= 0) {
+      spawnTourist();
+      spawnTimer = selectedDiff === 'low' ? 95 : selectedDiff === 'middle' ? 65 : 42;
+    }
+
+    for (let i = tourists.length - 1; i >= 0; i--) {
+      const t = tourists[i];
+      t.x += t.vx;
+
+      for (let j = notes.length - 1; j >= 0; j--) {
+        const n = notes[j];
+        if (Math.abs(n.x - (t.x + 15)) < 32 && Math.abs(n.y - (t.y + 30)) < 38) {
+          notes.splice(j, 1);
+          if (t.grumpy) {
+            t.grumpy = false;
+            t.shirt = '#fbbf24';
+            floatingTexts.push({ x: t.x, y: t.y - 10, text: 'Roztál!', color: '#fde047', life: 40 });
+          } else {
+            const tip = (Math.floor(Math.random() * 3) + 1) * h.coinMult;
+            euros += tip;
+            t.happy = 30;
+            floatingTexts.push({ x: t.x, y: t.y - 15, text: `+${tip} EUR`, color: '#4ade80', life: 45 });
+            t.vx *= 1.4;
+          }
+          break;
+        }
+      }
+
+      if (t.grumpy && Math.abs(t.x - player.x) < 26) {
+        energy = Math.max(0, energy - 15);
+        floatingTexts.push({ x: player.x, y: player.y - 10, text: 'Pšššt! (-15)', color: '#f87171', life: 45 });
+        tourists.splice(i, 1);
+        continue;
+      }
+
+      if (t.x < -60 || t.x > 860) tourists.splice(i, 1);
+    }
+
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+      floatingTexts[i].y -= 0.8;
+      floatingTexts[i].life--;
+      if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+    }
+  }
+
+  function drawScene() {
+    ctx.fillStyle = selectedMode === 'sunset' ? '#2b193d' : '#1d356b';
+    ctx.fillRect(0, 0, 800, 240);
+
+    ctx.fillStyle = selectedMode === 'sunset' ? '#ff7b00' : '#fff3d1';
+    ctx.beginPath();
+    ctx.arc(670, 95, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0077b6';
+    ctx.fillRect(0, 240, 800, 45);
+    ctx.fillStyle = '#90e0ef';
+    ctx.fillRect(0, 280, 800, 6);
+
+    ctx.fillStyle = '#e09f5a';
+    ctx.fillRect(0, 286, 800, 164);
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 355, 800, 95);
+
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(player.x + 15, player.y + 62, 30, 10);
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(player.x + 22, player.y + 64, 16, 4);
+
+    drawPixelHero(ctx, selectedHero, 2.3, player.x, player.y, player.frame);
+
+    tourists.forEach(t => {
+      ctx.fillStyle = '#f5cba7';
+      ctx.fillRect(t.x + 8, t.y, 16, 16);
+      ctx.fillStyle = t.shirt;
+      ctx.fillRect(t.x + 4, t.y + 16, 24, 24);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(t.x + 6, t.y + 40, 8, 18);
+      ctx.fillRect(t.x + 18, t.y + 40, 8, 18);
+      if (t.grumpy) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 20px VT323';
+        ctx.fillText('(!)', t.x + 8, t.y - 5);
+      }
+    });
+
+    notes.forEach(n => {
+      ctx.fillStyle = n.color;
+      ctx.font = 'bold 28px monospace';
+      ctx.fillText(n.symbol, n.x, n.y);
+    });
+
+    floatingTexts.forEach(ft => {
+      ctx.fillStyle = ft.color;
+      ctx.font = 'bold 22px VT323';
+      ctx.fillText(ft.text, ft.x, ft.y);
+    });
+
+    ctx.fillStyle = 'rgba(15, 22, 42, 0.85)';
+    ctx.fillRect(10, 10, 440, 40);
+    ctx.strokeStyle = '#f5b942';
+    ctx.strokeRect(10, 10, 440, 40);
+
+    ctx.fillStyle = '#f5b942';
+    ctx.font = '22px VT323';
+    ctx.fillText(`ZPĚVAČKA: ${HERO_DATA[selectedHero].name}   |   VYDĚLÁNO: ${euros} EUR   |   ENERGIE: ${energy}%`, 22, 36);
+
+    if (energy <= 0) {
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(0, 0, 800, 450);
+      ctx.fillStyle = '#f5b942';
+      ctx.font = '28px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText('KONEC SMĚNY!', 400, 195);
+      ctx.font = '24px VT323';
+      ctx.fillStyle = '#fff';
+      ctx.fillText(`Na promenádě Las Canteras jste vydělali celkem ${euros} EUR!`, 400, 240);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  function loop() {
+    if (energy > 0) update();
+    drawScene();
+    animId = requestAnimationFrame(loop);
+  }
+</script>
+</body>
+</html>
